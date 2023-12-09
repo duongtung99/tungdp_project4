@@ -7,23 +7,32 @@ import sys
 import logging
 from datetime import datetime
 
-# App Insights
-# TODO: Import required libraries for App Insights
-
 # Logging
-logger = # TODO: Setup logger
+logger = logging.getLogger(__name__)
+handler = AzureLogHandler(connection_string='InstrumentationKey=aaf25604-de83-40f1-be10-3df067c2ab2d;IngestionEndpoint=https://eastus-8.in.applicationinsights.azure.com/;LiveEndpoint=https://eastus.livediagnostics.monitor.azure.com/')
+logger.addHandler(handler)
+logger.setLevel(logging.INFO)
 
 # Metrics
-exporter = # TODO: Setup exporter
+exporter = metrics_exporter.new_metrics_exporter(
+  enable_standard_metrics=True,
+  connection_string='InstrumentationKey=aaf25604-de83-40f1-be10-3df067c2ab2d;IngestionEndpoint=https://eastus-8.in.applicationinsights.azure.com/;LiveEndpoint=https://eastus.livediagnostics.monitor.azure.com/')
 
 # Tracing
-tracer = # TODO: Setup tracer
+tracer = Tracer(
+    exporter=AzureExporter(
+        connection_string='InstrumentationKey=aaf25604-de83-40f1-be10-3df067c2ab2d;IngestionEndpoint=https://eastus-8.in.applicationinsights.azure.com/;LiveEndpoint=https://eastus.livediagnostics.monitor.azure.com/'),
+    sampler=ProbabilitySampler(1.0),
+)
 
 app = Flask(__name__)
 
 # Requests
-middleware = # TODO: Setup flask middleware
-
+middleware = FlaskMiddleware(
+    app,
+    exporter=AzureExporter(connection_string="InstrumentationKey=aaf25604-de83-40f1-be10-3df067c2ab2d;IngestionEndpoint=https://eastus-8.in.applicationinsights.azure.com/;LiveEndpoint=https://eastus.livediagnostics.monitor.azure.com/"),
+    sampler=ProbabilitySampler(rate=1.0),
+)
 # Load configurations from environment or config file
 app.config.from_pyfile('config_file.cfg')
 
